@@ -1,0 +1,89 @@
+# Production Docker Compose for SurfCamp
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: surfcamp_db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-surfcamp}
+      POSTGRES_USER: ${DB_USER:-surfcamp_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-surfcamp_secret_2024}
+    volumes:
+      - surfcamp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-surfcamp_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - surfcamp_network
+    restart: always
+
+  # Django Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: surfcamp_backend
+    env_file:
+      - ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - surfcamp_static_volume:/app/staticfiles
+      - surfcamp_media_volume:/app/media
+    expose:
+      - "8000"
+    networks:
+      - surfcamp_network
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 4"
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://146.190.31.111:8080/api}
+    container_name: surfcamp_frontend
+    expose:
+      - "80"
+    depends_on:
+      - backend
+    networks:
+      - surfcamp_network
+    restart: always
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: surfcamp_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - surfcamp_static_volume:/static:ro
+      - surfcamp_media_volume:/media:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - surfcamp_network
+    restart: always
+
+volumes:
+  surfcamp_postgres_data:
+  surfcamp_static_volume:
+  surfcamp_media_volume:
+
+networks:
+  surfcamp_network:
+    driver: bridge

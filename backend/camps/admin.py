@@ -1,0 +1,171 @@
+from django.contrib import admin
+from django.utils.html import format_html
+from .models import (
+    Country, Region, BoardType, Amenity, SurfCamp,
+    CampImage, Instructor, Activity, Review
+)
+
+
+@admin.register(Country)
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'name_en', 'code', 'is_active', 'camps_count']
+    list_filter = ['is_active']
+    search_fields = ['name', 'name_en', 'code']
+    list_editable = ['is_active']
+
+    def camps_count(self, obj):
+        return SurfCamp.objects.filter(region__country=obj).count()
+    camps_count.short_description = 'Кемпов'
+
+
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'country', 'camps_count']
+    list_filter = ['country']
+    search_fields = ['name', 'name_en']
+
+    def camps_count(self, obj):
+        return obj.camps.count()
+    camps_count.short_description = 'Кемпов'
+
+
+@admin.register(BoardType)
+class BoardTypeAdmin(admin.ModelAdmin):
+    list_display = ['name_en', 'name', 'icon']
+    search_fields = ['name', 'name_en']
+
+
+@admin.register(Amenity)
+class AmenityAdmin(admin.ModelAdmin):
+    list_display = ['name_en', 'name', 'category', 'icon']
+    list_filter = ['category']
+    search_fields = ['name', 'name_en']
+
+
+class CampImageInline(admin.TabularInline):
+    model = CampImage
+    extra = 1
+    fields = ['image', 'alt_text', 'is_main', 'order', 'image_preview']
+    readonly_fields = ['image_preview']
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 60px;"/>', obj.image.url)
+        return '-'
+    image_preview.short_description = 'Превью'
+
+
+class InstructorInline(admin.TabularInline):
+    model = Instructor
+    extra = 0
+    fields = ['name', 'photo', 'experience_years', 'languages', 'is_head_coach']
+
+
+class ActivityInline(admin.TabularInline):
+    model = Activity
+    extra = 0
+    fields = ['name_en', 'name', 'price', 'is_included']
+
+
+class ReviewInline(admin.TabularInline):
+    model = Review
+    extra = 0
+    fields = ['author_name', 'rating', 'title', 'is_verified', 'is_published', 'created_at']
+    readonly_fields = ['created_at']
+
+
+@admin.register(SurfCamp)
+class SurfCampAdmin(admin.ModelAdmin):
+    list_display = [
+        'name', 'region', 'price_per_night', 'rating',
+        'reviews_count', 'is_featured', 'is_active', 'image_preview'
+    ]
+    list_filter = ['is_active', 'is_featured', 'region__country', 'has_pool', 'has_yoga', 'has_parties']
+    search_fields = ['name', 'short_description', 'address']
+    list_editable = ['is_featured', 'is_active']
+    prepopulated_fields = {'slug': ('name',)}
+    filter_horizontal = ['board_types', 'amenities']
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('name', 'slug', 'region', 'short_description', 'description', 'history')
+        }),
+        ('Геолокация', {
+            'fields': ('address', ('latitude', 'longitude'))
+        }),
+        ('Цены', {
+            'fields': (
+                'price_per_night', 'price_per_lesson',
+                ('has_bed_breakfast', 'bed_breakfast_price')
+            )
+        }),
+        ('Серфинг', {
+            'fields': (
+                'skill_levels', 'board_types',
+                ('board_rental_available', 'board_rental_price')
+            )
+        }),
+        ('Удобства', {
+            'fields': (
+                'amenities',
+                ('has_pool', 'has_restaurant', 'has_yoga', 'has_parties')
+            )
+        }),
+        ('Контакты', {
+            'fields': ('website', 'email', 'phone', 'instagram', 'whatsapp')
+        }),
+        ('Рейтинг и статус', {
+            'fields': (('rating', 'reviews_count'), ('is_featured', 'is_active'))
+        }),
+    )
+
+    inlines = [CampImageInline, InstructorInline, ActivityInline, ReviewInline]
+
+    def image_preview(self, obj):
+        main_image = obj.main_image
+        if main_image:
+            return format_html('<img src="{}" style="max-height: 40px; border-radius: 4px;"/>', main_image.image.url)
+        return '-'
+    image_preview.short_description = 'Фото'
+
+
+@admin.register(CampImage)
+class CampImageAdmin(admin.ModelAdmin):
+    list_display = ['camp', 'image_preview', 'alt_text', 'is_main', 'order']
+    list_filter = ['camp', 'is_main']
+    list_editable = ['is_main', 'order']
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-height: 60px;"/>', obj.image.url)
+        return '-'
+    image_preview.short_description = 'Превью'
+
+
+@admin.register(Instructor)
+class InstructorAdmin(admin.ModelAdmin):
+    list_display = ['name', 'camp', 'experience_years', 'languages', 'is_head_coach']
+    list_filter = ['camp', 'is_head_coach']
+    search_fields = ['name', 'bio']
+
+
+@admin.register(Activity)
+class ActivityAdmin(admin.ModelAdmin):
+    list_display = ['name_en', 'camp', 'price', 'is_included']
+    list_filter = ['camp', 'is_included']
+    search_fields = ['name', 'name_en']
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['author_name', 'camp', 'rating', 'is_verified', 'is_published', 'created_at']
+    list_filter = ['is_verified', 'is_published', 'rating', 'camp']
+    search_fields = ['author_name', 'title', 'text']
+    list_editable = ['is_verified', 'is_published']
+    date_hierarchy = 'created_at'
+
+
+# Настройка админ-сайта
+admin.site.site_header = 'SurfCamp Admin'
+admin.site.site_title = 'SurfCamp'
+admin.site.index_title = 'Управление серф-кемпами'
