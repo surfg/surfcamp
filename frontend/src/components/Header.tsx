@@ -14,6 +14,7 @@ export function Header() {
   const navLinks = [
     { path: '/camps', label: t('nav.surfCamps') },
     { path: '/spots', label: t('nav.surfSpots') },
+    { path: '/lessons', label: t('nav.surfLessons') },
     { path: '/map', label: t('nav.map') },
   ];
 

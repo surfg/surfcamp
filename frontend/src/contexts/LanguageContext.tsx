@@ -200,6 +200,40 @@ const translations: Translations = {
   'map.viewDetails': { en: 'View Details', ru: 'Подробнее' },
   'map.viewSpot': { en: 'View Spot', ru: 'Посмотреть спот' },
 
+  // Pagination
+  'pagination.showing': { en: 'Showing', ru: 'Показано' },
+  'pagination.of': { en: 'of', ru: 'из' },
+  'pagination.prev': { en: 'Previous', ru: 'Назад' },
+  'pagination.next': { en: 'Next', ru: 'Далее' },
+
+  // Spots
+  'spots.title': { en: 'Surf Spots', ru: 'Серф-споты' },
+  'spots.subtitle': { en: 'Discover the best waves around the world', ru: 'Откройте лучшие волны по всему миру' },
+  'spots.places': { en: 'spots', ru: 'спотов' },
+
+  // Lessons
+  'nav.surfLessons': { en: 'Surf Lessons', ru: 'Уроки серфинга' },
+  'lessons.title': { en: 'Surf Lessons', ru: 'Уроки серфинга' },
+  'lessons.subtitle': { en: 'Learn to surf with professional instructors', ru: 'Научитесь серфингу с профессиональными инструкторами' },
+  'lessons.places': { en: 'lessons available', ru: 'доступных уроков' },
+  'lessons.noResults': { en: 'No lessons found', ru: 'Уроки не найдены' },
+  'lessons.adjustFilters': { en: 'Try adjusting your filters', ru: 'Попробуйте изменить фильтры' },
+  'lessons.duration': { en: 'Duration', ru: 'Длительность' },
+  'lessons.groupSize': { en: 'Group size', ru: 'Размер группы' },
+  'lessons.level': { en: 'Level', ru: 'Уровень' },
+  'lessons.price': { en: 'Price', ru: 'Цена' },
+  'lessons.perLesson': { en: 'per lesson', ru: 'за урок' },
+  'lessons.perPackage': { en: 'per package', ru: 'за пакет' },
+  'lessons.hours': { en: 'hours', ru: 'часов' },
+  'lessons.minutes': { en: 'minutes', ru: 'минут' },
+  'lessons.people': { en: 'people', ru: 'человек' },
+  'lessons.private': { en: 'Private', ru: 'Индивидуальный' },
+  'lessons.group': { en: 'Group', ru: 'Групповой' },
+  'lessons.includesEquipment': { en: 'Equipment included', ru: 'Оборудование включено' },
+  'lessons.includesTransport': { en: 'Transport included', ru: 'Трансфер включён' },
+  'lessons.bookLesson': { en: 'Book Lesson', ru: 'Забронировать урок' },
+  'lesson.backToLessons': { en: 'Back to lessons', ru: 'К списку уроков' },
+
   // Common
   'common.loading': { en: 'Loading...', ru: 'Загрузка...' },
   'common.error': { en: 'Error', ru: 'Ошибка' },

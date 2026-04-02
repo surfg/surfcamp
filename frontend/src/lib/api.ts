@@ -1,6 +1,7 @@
 import type {
   SurfCamp, SurfCampDetail, SurfSpot, SurfSpotDetail, Country, FilterParams,
-  SearchResult, FilterOptions, Booking, BookingCreateData, PaymentData, Guest
+  SearchResult, FilterOptions, Booking, BookingCreateData, PaymentData, Guest,
+  SurfLesson, SurfLessonDetail, LessonFilterOptions
 } from '../types';
 
 const API_BASE = '/api';
@@ -56,8 +57,17 @@ export async function getCampsMapData(params?: FilterParams): Promise<SurfCamp[]
 }
 
 // Spots
-export async function getSpots(): Promise<{ results: SurfSpot[] }> {
-  return fetchAPI('/spots/');
+export async function getSpots(params?: FilterParams): Promise<{ results: SurfSpot[]; count: number }> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '' && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+  }
+  const query = searchParams.toString();
+  return fetchAPI(`/spots/${query ? `?${query}` : ''}`);
 }
 
 export async function getSpot(slug: string): Promise<SurfSpotDetail> {
@@ -139,6 +149,32 @@ export async function getBookingPriceBreakdown(bookingNumber: string): Promise<{
   currency: string;
 }> {
   return fetchAPI(`/bookings/${bookingNumber}/price_breakdown/`);
+}
+
+// Lessons
+export async function getLessons(params?: FilterParams): Promise<{ results: SurfLesson[]; count: number }> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '' && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+  }
+  const query = searchParams.toString();
+  return fetchAPI(`/lessons/${query ? `?${query}` : ''}`);
+}
+
+export async function getLesson(slug: string): Promise<SurfLessonDetail> {
+  return fetchAPI(`/lessons/${slug}/`);
+}
+
+export async function getFeaturedLessons(): Promise<SurfLesson[]> {
+  return fetchAPI('/lessons/featured/');
+}
+
+export async function getLessonFilters(): Promise<LessonFilterOptions> {
+  return fetchAPI('/lessons/filters/');
 }
 
 // Calculate price preview (client-side)

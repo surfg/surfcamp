@@ -2,9 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, X, ChevronDown, Map } from 'lucide-react';
 import { CampCard } from '../components/CampCard';
+import { Pagination } from '../components/Pagination';
 import { getCamps, getFilterOptions } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { SurfCamp, FilterParams, FilterOptions } from '../types';
+
+const PAGE_SIZE = 12;
 
 export function CampsPage() {
   const { t, language } = useLanguage();
@@ -26,6 +29,7 @@ export function CampsPage() {
     return params;
   });
   const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
   const [selectedBoardTypes, setSelectedBoardTypes] = useState<number[]>([]);
 
@@ -43,7 +47,7 @@ export function CampsPage() {
     setLoading(true);
     setError(null);
 
-    const apiFilters: FilterParams = { ...filters };
+    const apiFilters: FilterParams = { ...filters, page: currentPage };
     if (priceRange[0] > 0) apiFilters.min_price = priceRange[0];
     if (priceRange[1] < (filterOptions?.price_range.max || 500)) apiFilters.max_price = priceRange[1];
     if (selectedBoardTypes.length > 0) {
@@ -54,10 +58,11 @@ export function CampsPage() {
       .then((data) => {
         setCamps(data.results);
         setTotalCount(data.count);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [filters, priceRange, filterOptions?.price_range.max, selectedBoardTypes]);
+  }, [filters, currentPage, priceRange, filterOptions?.price_range.max, selectedBoardTypes]);
 
   useEffect(() => {
     fetchCamps();
@@ -83,6 +88,18 @@ export function CampsPage() {
     setFilters({});
     setPriceRange([0, filterOptions?.price_range.max || 500]);
     setSelectedBoardTypes([]);
+    setCurrentPage(1);
+  };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, priceRange, selectedBoardTypes]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const handleShowOnMap = () => {
@@ -637,15 +654,24 @@ export function CampsPage() {
             </p>
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '24px'
-          }}>
-            {camps.map((camp) => (
-              <CampCard key={camp.id} camp={camp} />
-            ))}
-          </div>
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: '24px'
+            }}>
+              {camps.map((camp) => (
+                <CampCard key={camp.id} camp={camp} />
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              totalCount={totalCount}
+              pageSize={PAGE_SIZE}
+            />
+          </>
         )}
       </div>
     </div>

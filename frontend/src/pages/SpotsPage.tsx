@@ -2,21 +2,32 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, Waves } from 'lucide-react';
 import { getSpots } from '../lib/api';
+import { Pagination } from '../components/Pagination';
+import { useLanguage } from '../contexts/LanguageContext';
 import type { SurfSpot } from '../types';
 
+const PAGE_SIZE = 12;
+
 export function SpotsPage() {
+  const { t } = useLanguage();
   const [spots, setSpots] = useState<SurfSpot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchSpots = useCallback(() => {
     setLoading(true);
     setError(null);
-    getSpots()
-      .then((data) => setSpots(data.results))
+    getSpots({ page: currentPage })
+      .then((data) => {
+        setSpots(data.results);
+        setTotalCount(data.count);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     fetchSpots();
@@ -29,6 +40,12 @@ export function SpotsPage() {
       'point': 'Point Break'
     };
     return labels[type] || type;
+  };
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -49,14 +66,14 @@ export function SpotsPage() {
             color: '#0f172a',
             margin: 0
           }}>
-            Surf Spots
+            {t('spots.title')}
           </h1>
           <p style={{
             fontSize: '16px',
             color: '#64748b',
             margin: '8px 0 0'
           }}>
-            Discover the best waves around the world
+            {totalCount} {t('spots.places')} • {t('spots.subtitle')}
           </p>
         </div>
       </div>
@@ -83,10 +100,10 @@ export function SpotsPage() {
               margin: '0 auto 16px',
               fontSize: '28px'
             }}>
-              😕
+              :(
             </div>
             <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: '0 0 8px' }}>
-              Something went wrong
+              {t('camps.error')}
             </h3>
             <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 24px' }}>{error}</p>
             <button
@@ -102,7 +119,7 @@ export function SpotsPage() {
                 cursor: 'pointer'
               }}
             >
-              Try Again
+              {t('camps.tryAgain')}
             </button>
           </div>
         ) : loading ? (
@@ -131,134 +148,143 @@ export function SpotsPage() {
           }}>
             <Waves style={{ width: '48px', height: '48px', color: '#94a3b8', margin: '0 auto 16px' }} />
             <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: '0 0 8px' }}>
-              No spots found
+              {t('camps.noResults')}
             </h3>
             <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
-              Check back later
+              {t('camps.adjustFilters')}
             </p>
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '24px'
-          }}>
-            {spots.map((spot) => (
-              <Link
-                key={spot.id}
-                to={`/spots/${spot.slug}`}
-                style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
-              >
-                <article>
-                  {/* Image */}
-                  <div style={{
-                    position: 'relative',
-                    aspectRatio: '4/3',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    marginBottom: '12px'
-                  }}>
-                    <img
-                      src={spot.main_image || 'https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop'}
-                      alt={spot.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: '24px'
+            }}>
+              {spots.map((spot) => (
+                <Link
+                  key={spot.id}
+                  to={`/spots/${spot.slug}`}
+                  style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+                >
+                  <article>
+                    {/* Image */}
                     <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      padding: '6px 12px',
-                      backgroundColor: 'white',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#ea580c'
+                      position: 'relative',
+                      aspectRatio: '4/3',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      marginBottom: '12px'
                     }}>
-                      {getWaveLabel(spot.wave_type)}
+                      <img
+                        src={spot.main_image || 'https://images.unsplash.com/photo-1509914398892-963f53e6e2f1?w=800&h=600&fit=crop'}
+                        alt={spot.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        padding: '6px 12px',
+                        backgroundColor: 'white',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#ea580c'
+                      }}>
+                        {getWaveLabel(spot.wave_type)}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Content */}
-                  <div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '4px'
-                    }}>
+                    {/* Content */}
+                    <div>
                       <div style={{
                         display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        gap: '4px',
+                        marginBottom: '4px'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: '#64748b',
+                          fontSize: '14px'
+                        }}>
+                          <MapPin style={{ width: '14px', height: '14px' }} />
+                          <span>{spot.region_name}, {spot.country_name}</span>
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <Star style={{ width: '14px', height: '14px', fill: '#0f172a', color: '#0f172a' }} />
+                          <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                            {Number(spot.rating).toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 style={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        color: '#0f172a',
+                        margin: '0 0 6px'
+                      }}>
+                        {spot.name}
+                      </h3>
+
+                      <p style={{
+                        fontSize: '14px',
                         color: '#64748b',
-                        fontSize: '14px'
+                        margin: '0 0 8px',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
                       }}>
-                        <MapPin style={{ width: '14px', height: '14px' }} />
-                        <span>{spot.region_name}, {spot.country_name}</span>
-                      </div>
+                        {spot.short_description}
+                      </p>
+
                       <div style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
+                        gap: '8px'
                       }}>
-                        <Star style={{ width: '14px', height: '14px', fill: '#0f172a', color: '#0f172a' }} />
-                        <span style={{ fontSize: '14px', fontWeight: 500 }}>
-                          {Number(spot.rating).toFixed(1)}
-                        </span>
+                        {spot.skill_levels.map(level => (
+                          <span
+                            key={level}
+                            style={{
+                              padding: '4px 10px',
+                              backgroundColor: level === 'beginner' ? '#dcfce7' : level === 'intermediate' ? '#fef3c7' : '#fce7f3',
+                              color: level === 'beginner' ? '#166534' : level === 'intermediate' ? '#92400e' : '#9d174d',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              fontWeight: 500,
+                              textTransform: 'capitalize'
+                            }}
+                          >
+                            {level}
+                          </span>
+                        ))}
                       </div>
                     </div>
-
-                    <h3 style={{
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      color: '#0f172a',
-                      margin: '0 0 6px'
-                    }}>
-                      {spot.name}
-                    </h3>
-
-                    <p style={{
-                      fontSize: '14px',
-                      color: '#64748b',
-                      margin: '0 0 8px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {spot.short_description}
-                    </p>
-
-                    <div style={{
-                      display: 'flex',
-                      gap: '8px'
-                    }}>
-                      {spot.skill_levels.map(level => (
-                        <span
-                          key={level}
-                          style={{
-                            padding: '4px 10px',
-                            backgroundColor: level === 'beginner' ? '#dcfce7' : level === 'intermediate' ? '#fef3c7' : '#fce7f3',
-                            color: level === 'beginner' ? '#166534' : level === 'intermediate' ? '#92400e' : '#9d174d',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 500,
-                            textTransform: 'capitalize'
-                          }}
-                        >
-                          {level}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
+                  </article>
+                </Link>
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              totalCount={totalCount}
+              pageSize={PAGE_SIZE}
+            />
+          </>
         )}
       </div>
     </div>

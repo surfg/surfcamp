@@ -188,6 +188,7 @@ export interface FilterParams {
   check_in?: string;
   check_out?: string;
   guests?: number;
+  page?: number;
 }
 
 // Search autocomplete types
@@ -362,6 +363,130 @@ export interface PriceBreakdown {
   service_fee: number;
   total_price: number;
   currency: string;
+}
+
+// Surf Lessons
+export interface LessonProvider {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  description_ru: string;
+  region_name: string;
+  country_name: string;
+  country_code: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  phone: string;
+  email: string;
+  website: string;
+  instagram: string;
+  whatsapp: string;
+  logo: string | null;
+  main_image: string | null;
+  rating: number;
+  reviews_count: number;
+  is_featured: boolean;
+}
+
+export interface SurfLesson {
+  id: number;
+  name: string;
+  name_ru: string;
+  slug: string;
+  short_description: string;
+  short_description_ru: string;
+  provider_name: string;
+  provider_slug: string;
+  region_name: string;
+  country_name: string;
+  country_code: string;
+  lesson_type: 'private' | 'group' | 'semi_private';
+  skill_level: 'beginner' | 'intermediate' | 'advanced' | 'all';
+  duration_minutes: number;
+  duration_hours: number;
+  max_participants: number;
+  min_age: number;
+  price: number;
+  currency: string;
+  price_per_person: boolean;
+  is_package: boolean;
+  lessons_in_package: number;
+  includes_equipment: boolean;
+  includes_transport: boolean;
+  main_image: string | null;
+  rating: number;
+  reviews_count: number;
+  is_featured: boolean;
+}
+
+export interface LessonImage {
+  id: number;
+  image: string;
+  alt_text: string;
+  is_main: boolean;
+  order: number;
+}
+
+export interface LessonReview {
+  id: number;
+  author_name: string;
+  author_country: string;
+  author_photo: string | null;
+  rating: number;
+  title: string;
+  text: string;
+  surf_level: string;
+  visit_date: string | null;
+  is_verified: boolean;
+  created_at: string;
+}
+
+export interface SurfLessonDetail extends Omit<SurfLesson, 'provider_name' | 'provider_slug'> {
+  description: string;
+  description_ru: string;
+  provider: LessonProvider;
+  includes_wetsuit: boolean;
+  includes_photos: boolean;
+  includes_video: boolean;
+  includes_theory: boolean;
+  includes_insurance: boolean;
+  package_discount_percent: number;
+  images: LessonImage[];
+  reviews: LessonReview[];
+  bookings_count: number;
+  created_at: string;
+}
+
+export interface LessonFilterOptions {
+  countries: Array<{
+    id: number;
+    name: string;
+    name_en: string;
+    code: string;
+    lessons_count: number;
+  }>;
+  lesson_types: Array<{
+    value: string;
+    label: string;
+    label_ru: string;
+  }>;
+  skill_levels: Array<{
+    value: string;
+    label: string;
+    label_ru: string;
+  }>;
+  price_range: {
+    min: number;
+    max: number;
+    avg: number;
+  };
+  durations: Array<{
+    value: number;
+    label: string;
+    label_ru: string;
+  }>;
 }
 
 // Booking state for multi-step flow

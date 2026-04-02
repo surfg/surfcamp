@@ -8,6 +8,7 @@ urlpatterns = [
     path('api/', include('camps.urls')),
     path('api/', include('spots.urls')),
     path('api/', include('bookings.urls')),
+    path('api/', include('lessons.urls')),
 ]
 
 if settings.DEBUG:

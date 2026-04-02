@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'camps',
     'spots',
     'bookings',
+    'lessons',
 ]
 
 MIDDLEWARE = [
