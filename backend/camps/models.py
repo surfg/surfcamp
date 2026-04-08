@@ -134,6 +134,21 @@ class SurfCamp(models.Model):
     )
     reviews_count = models.PositiveIntegerField(default=0, verbose_name="Количество отзывов")
 
+    # Скидки
+    discount_percent = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(90)],
+        verbose_name="Скидка (%)"
+    )
+    discount_ends_at = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name="Скидка действует до"
+    )
+    discount_description = models.CharField(
+        max_length=200, blank=True,
+        verbose_name="Описание скидки"
+    )
+
     # Мета
     is_featured = models.BooleanField(default=False, verbose_name="Рекомендуемый")
     is_active = models.BooleanField(default=True, verbose_name="Активен")

@@ -55,3 +55,18 @@ htmlcov/
 
 # Build
 build/
+
+# Scraper / runtime artifacts
+backend/scraper_stats_*.json
+backend/batch_test_results.json
+backend/*_parsed.json
+backend/test_*.json
+backend/data_export_*.json
+backend/media_optimized/
+backend/scraper/PARSED_CAMPS_REPORT.md
+backend/PARSED_CAMPS_REPORT.md
+
+# Local working notes
+CHANGES_*.md
+tasks*.md
+DEPLOYMENT_GUIDE.md

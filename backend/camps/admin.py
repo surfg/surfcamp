@@ -77,14 +77,15 @@ class ReviewInline(admin.TabularInline):
 @admin.register(SurfCamp)
 class SurfCampAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'region', 'price_per_night', 'rating',
-        'reviews_count', 'is_featured', 'is_active', 'image_preview'
+        'name', 'region', 'price_per_night', 'discount_badge',
+        'rating', 'reviews_count', 'is_featured', 'is_active', 'image_preview'
     ]
-    list_filter = ['is_active', 'is_featured', 'region__country', 'has_pool', 'has_yoga', 'has_parties']
+    list_filter = ['is_active', 'is_featured', 'region__country', 'has_pool', 'has_yoga', 'has_parties', 'discount_percent']
     search_fields = ['name', 'short_description', 'address']
     list_editable = ['is_featured', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
     filter_horizontal = ['board_types', 'amenities']
+    actions = ['set_24h_discount', 'clear_discount']
 
     fieldsets = (
         ('Основная информация', {
@@ -98,6 +99,14 @@ class SurfCampAdmin(admin.ModelAdmin):
                 'price_per_night', 'price_per_lesson',
                 ('has_bed_breakfast', 'bed_breakfast_price')
             )
+        }),
+        ('Скидки', {
+            'fields': (
+                ('discount_percent', 'discount_ends_at'),
+                'discount_description'
+            ),
+            'classes': ('collapse',),
+            'description': 'Настройте скидку с таймером. Скидка автоматически истечёт в указанное время.'
         }),
         ('Серфинг', {
             'fields': (
@@ -118,6 +127,46 @@ class SurfCampAdmin(admin.ModelAdmin):
             'fields': (('rating', 'reviews_count'), ('is_featured', 'is_active'))
         }),
     )
+
+    def discount_badge(self, obj):
+        if obj.discount_percent and obj.discount_percent > 0:
+            from django.utils import timezone
+            if obj.discount_ends_at and obj.discount_ends_at > timezone.now():
+                time_left = obj.discount_ends_at - timezone.now()
+                hours = int(time_left.total_seconds() // 3600)
+                return format_html(
+                    '<span style="background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">'
+                    '-{}% ({}h left)</span>',
+                    obj.discount_percent, hours
+                )
+            elif not obj.discount_ends_at:
+                return format_html(
+                    '<span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">'
+                    '-{}%</span>',
+                    obj.discount_percent
+                )
+        return '-'
+    discount_badge.short_description = 'Скидка'
+
+    @admin.action(description='Установить скидку 15% на 24 часа')
+    def set_24h_discount(self, request, queryset):
+        from django.utils import timezone
+        from datetime import timedelta
+        count = queryset.update(
+            discount_percent=15,
+            discount_ends_at=timezone.now() + timedelta(hours=24),
+            discount_description='Flash Sale - 24 hours only!'
+        )
+        self.message_user(request, f'Скидка 15% установлена для {count} кемпов на 24 часа.')
+
+    @admin.action(description='Убрать скидку')
+    def clear_discount(self, request, queryset):
+        count = queryset.update(
+            discount_percent=0,
+            discount_ends_at=None,
+            discount_description=''
+        )
+        self.message_user(request, f'Скидка убрана для {count} кемпов.')
 
     inlines = [CampImageInline, InstructorInline, ActivityInline, ReviewInline]
 

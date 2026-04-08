@@ -3,10 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   MapPin, Star, ArrowLeft, Globe, Mail, Phone, Camera,
   ChevronLeft, ChevronRight, Check, Waves, Users,
-  Map as MapIcon, MessageCircle
+  Map as MapIcon, MessageCircle, Clock, Percent
 } from 'lucide-react';
 import { getCamp } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
+import { OptimizedImage, useImagePreload } from '../components/OptimizedImage';
+import { InlineSignupCard } from '../components/RegistrationMotivation';
 import type { SurfCampDetail } from '../types';
 
 export function CampDetailPage() {
@@ -75,6 +77,18 @@ export function CampDetailPage() {
     ? camp.images.map(img => img.image)
     : ['https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1200&h=800&fit=crop'];
 
+  // Preload first 3 images
+  useImagePreload(images, 3);
+
+  // Discount calculations
+  const hasDiscount = (camp as any).discount_percent && (camp as any).discount_percent > 0;
+  const discountEndsAt = (camp as any).discount_ends_at;
+  const isDiscountActive = hasDiscount && discountEndsAt && new Date(discountEndsAt) > new Date();
+  const originalPrice = Number(camp.price_per_night);
+  const discountedPrice = isDiscountActive
+    ? originalPrice * (1 - ((camp as any).discount_percent || 0) / 100)
+    : originalPrice;
+
   const skillLevelLabels: Record<string, { en: string; ru: string }> = {
     beginner: { en: 'Beginner', ru: 'Начинающий' },
     intermediate: { en: 'Intermediate', ru: 'Средний' },
@@ -120,15 +134,59 @@ export function CampDetailPage() {
           overflow: 'hidden',
           backgroundColor: '#f1f5f9'
         }}>
-          <img
+          <OptimizedImage
             src={images[activeImage]}
             alt={camp.name}
+            priority={activeImage === 0}
+            sizes="(max-width: 768px) 100vw, 1400px"
             style={{
               width: '100%',
-              height: '100%',
-              objectFit: 'cover'
+              height: '100%'
             }}
           />
+
+          {/* Discount Badge */}
+          {isDiscountActive && (
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: '8px'
+            }}>
+              <div style={{
+                padding: '10px 18px',
+                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                borderRadius: '24px',
+                fontSize: '16px',
+                fontWeight: 700,
+                color: 'white',
+                boxShadow: '0 4px 15px rgba(239,68,68,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <Percent style={{ width: '18px', height: '18px' }} />
+                -{(camp as any).discount_percent}% OFF
+              </div>
+              <div style={{
+                padding: '6px 14px',
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                borderRadius: '14px',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <Clock style={{ width: '14px', height: '14px' }} />
+                Limited time offer!
+              </div>
+            </div>
+          )}
 
           {images.length > 1 && (
             <>
@@ -701,20 +759,60 @@ export function CampDetailPage() {
 
         {/* Sidebar - Booking Card */}
         <div>
+          {/* Inline signup card for non-logged users */}
+          <InlineSignupCard
+            isLoggedIn={false}
+            onRegister={() => window.location.href = '/register'}
+          />
+
           <div style={{
             position: 'sticky',
             top: '100px',
             padding: '28px',
             backgroundColor: 'white',
             borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+            border: isDiscountActive ? '2px solid #dc2626' : '1px solid #e2e8f0',
+            boxShadow: isDiscountActive ? '0 4px 20px rgba(220,38,38,0.15)' : '0 4px 20px rgba(0,0,0,0.08)'
           }}>
+            {/* Discount header */}
+            {isDiscountActive && (
+              <div style={{
+                background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                margin: '-28px -28px 20px -28px',
+                padding: '14px 28px',
+                borderRadius: '18px 18px 0 0',
+                textAlign: 'center'
+              }}>
+                <span style={{ color: 'white', fontWeight: 700, fontSize: '15px' }}>
+                  🔥 FLASH SALE - {(camp as any).discount_percent}% OFF
+                </span>
+              </div>
+            )}
+
             <div style={{ marginBottom: '24px' }}>
-              <span style={{ fontSize: '28px', fontWeight: 700, color: '#0f172a' }}>
-                ${Number(camp.price_per_night).toFixed(0)}
-              </span>
-              <span style={{ fontSize: '16px', color: '#64748b' }}> / {t('camp.perNight')}</span>
+              {isDiscountActive ? (
+                <div>
+                  <span style={{
+                    fontSize: '18px',
+                    color: '#94a3b8',
+                    textDecoration: 'line-through',
+                    marginRight: '10px'
+                  }}>
+                    ${originalPrice.toFixed(0)}
+                  </span>
+                  <span style={{ fontSize: '28px', fontWeight: 700, color: '#dc2626' }}>
+                    ${discountedPrice.toFixed(0)}
+                  </span>
+                  <span style={{ fontSize: '16px', color: '#64748b' }}> / {t('camp.perNight')}</span>
+                </div>
+              ) : (
+                <div>
+                  <span style={{ fontSize: '28px', fontWeight: 700, color: '#0f172a' }}>
+                    ${originalPrice.toFixed(0)}
+                  </span>
+                  <span style={{ fontSize: '16px', color: '#64748b' }}> / {t('camp.perNight')}</span>
+                </div>
+              )}
             </div>
 
             {camp.has_bed_breakfast && camp.bed_breakfast_price && (

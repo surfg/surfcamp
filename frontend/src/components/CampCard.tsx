@@ -1,13 +1,40 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, Clock, Percent } from 'lucide-react';
+import { OptimizedImage } from './OptimizedImage';
 import type { SurfCamp } from '../types';
 
 interface CampCardProps {
   camp: SurfCamp;
 }
 
+// Calculate time remaining for discount
+function getTimeRemaining(endTime: string | null): { hours: number; minutes: number } | null {
+  if (!endTime) return null;
+  const end = new Date(endTime).getTime();
+  const now = Date.now();
+  const diff = end - now;
+
+  if (diff <= 0) return null;
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  return { hours, minutes };
+}
+
 export function CampCard({ camp }: CampCardProps) {
   const imageUrl = camp.main_image || 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&h=600&fit=crop';
+
+  // Check for active discount
+  const hasDiscount = camp.discount_percent && camp.discount_percent > 0;
+  const timeRemaining = camp.discount_ends_at ? getTimeRemaining(camp.discount_ends_at) : null;
+  const isDiscountActive = hasDiscount && timeRemaining;
+
+  // Calculate discounted price
+  const originalPrice = Number(camp.price_per_night);
+  const discountedPrice = isDiscountActive
+    ? originalPrice * (1 - (camp.discount_percent || 0) / 100)
+    : originalPrice;
 
   return (
     <Link
@@ -18,25 +45,65 @@ export function CampCard({ camp }: CampCardProps) {
         {/* Image */}
         <div style={{
           position: 'relative',
-          aspectRatio: '4/3',
           borderRadius: '16px',
           overflow: 'hidden',
           marginBottom: '12px'
         }}>
-          <img
+          <OptimizedImage
             src={imageUrl}
             alt={camp.name}
+            aspectRatio="4/3"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
               transition: 'transform 0.3s'
             }}
-            className="hover:scale-105"
           />
 
+          {/* Discount Badge with Timer */}
+          {isDiscountActive && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: '6px'
+            }}>
+              <div style={{
+                padding: '6px 12px',
+                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                borderRadius: '20px',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: 'white',
+                boxShadow: '0 2px 8px rgba(239,68,68,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                <Percent style={{ width: '14px', height: '14px' }} />
+                -{camp.discount_percent}%
+              </div>
+              <div style={{
+                padding: '4px 10px',
+                backgroundColor: 'rgba(0,0,0,0.75)',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 600,
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                <Clock style={{ width: '12px', height: '12px' }} />
+                {timeRemaining.hours}h {timeRemaining.minutes}m left
+              </div>
+            </div>
+          )}
+
           {/* Featured Badge */}
-          {camp.is_featured && (
+          {camp.is_featured && !isDiscountActive && (
             <div style={{
               position: 'absolute',
               top: '12px',
@@ -48,6 +115,24 @@ export function CampCard({ camp }: CampCardProps) {
               fontWeight: 600,
               color: '#0f172a',
               boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+            }}>
+              Guest favourite
+            </div>
+          )}
+
+          {/* Featured Badge (when discount is active) */}
+          {camp.is_featured && isDiscountActive && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              padding: '6px 12px',
+              background: 'linear-gradient(135deg, #fbbf24, #f97316)',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: 'white',
+              boxShadow: '0 2px 8px rgba(251,191,36,0.4)'
             }}>
               Guest favourite
             </div>
@@ -143,11 +228,33 @@ export function CampCard({ camp }: CampCardProps) {
           </p>
 
           {/* Price */}
-          <p style={{ margin: 0 }}>
-            <span style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>
-              ${Number(camp.price_per_night).toFixed(0)}
-            </span>
-            <span style={{ fontSize: '14px', color: '#64748b' }}> / night</span>
+          <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isDiscountActive ? (
+              <>
+                <span style={{
+                  fontSize: '14px',
+                  color: '#94a3b8',
+                  textDecoration: 'line-through'
+                }}>
+                  ${originalPrice.toFixed(0)}
+                </span>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: '#dc2626'
+                }}>
+                  ${discountedPrice.toFixed(0)}
+                </span>
+                <span style={{ fontSize: '14px', color: '#64748b' }}> / night</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>
+                  ${originalPrice.toFixed(0)}
+                </span>
+                <span style={{ fontSize: '14px', color: '#64748b' }}> / night</span>
+              </>
+            )}
           </p>
         </div>
       </article>

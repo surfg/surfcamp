@@ -98,6 +98,10 @@ export interface SurfCamp {
   has_yoga: boolean;
   is_featured: boolean;
   main_image: string | null;
+  // Discount fields
+  discount_percent: number | null;
+  discount_ends_at: string | null;
+  discount_description: string | null;
 }
 
 export interface SurfCampDetail extends SurfCamp {

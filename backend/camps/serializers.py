@@ -1,8 +1,28 @@
+import os
 from rest_framework import serializers
 from .models import (
     Country, Region, BoardType, Amenity, SurfCamp,
     CampImage, Instructor, Activity, Review
 )
+
+
+def get_optimized_image_url(original_path, size='thumb'):
+    """
+    Convert original image path to optimized WebP path
+    Example: camps/foo/img_00_abc.jpg -> optimized/camps/foo/img_00_abc_thumb.webp
+    """
+    if not original_path:
+        return None
+
+    # Parse path
+    path_str = str(original_path)
+    dir_name = os.path.dirname(path_str)  # camps/camp-slug
+    base_name = os.path.basename(path_str)  # img_00_hash.jpg
+    name_without_ext = os.path.splitext(base_name)[0]  # img_00_hash
+
+    # Build optimized path
+    optimized_path = f"optimized/{dir_name}/{name_without_ext}_{size}.webp"
+    return optimized_path
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -41,9 +61,33 @@ class AmenitySerializer(serializers.ModelSerializer):
 
 
 class CampImageSerializer(serializers.ModelSerializer):
+    """Serializer with optimized image sizes"""
+    thumb = serializers.SerializerMethodField()
+    medium = serializers.SerializerMethodField()
+    large = serializers.SerializerMethodField()
+
     class Meta:
         model = CampImage
-        fields = ['id', 'image', 'alt_text', 'is_main', 'order']
+        fields = ['id', 'image', 'thumb', 'medium', 'large', 'alt_text', 'is_main', 'order']
+
+    def _get_optimized_url(self, obj, size):
+        """Get optimized image URL for given size"""
+        if not obj.image:
+            return None
+        request = self.context.get('request')
+        optimized_path = get_optimized_image_url(obj.image.name, size)
+        if request:
+            return request.build_absolute_uri(f'/media/{optimized_path}')
+        return f'/media/{optimized_path}'
+
+    def get_thumb(self, obj):
+        return self._get_optimized_url(obj, 'thumb')
+
+    def get_medium(self, obj):
+        return self._get_optimized_url(obj, 'medium')
+
+    def get_large(self, obj):
+        return self._get_optimized_url(obj, 'large')
 
 
 class InstructorSerializer(serializers.ModelSerializer):
@@ -77,6 +121,7 @@ class SurfCampListSerializer(serializers.ModelSerializer):
     country_name = serializers.CharField(source='region.country.name_en', read_only=True)
     country_code = serializers.CharField(source='region.country.code', read_only=True)
     main_image = serializers.SerializerMethodField()
+    discount_active = serializers.SerializerMethodField()
 
     class Meta:
         model = SurfCamp
@@ -86,16 +131,29 @@ class SurfCampListSerializer(serializers.ModelSerializer):
             'latitude', 'longitude',
             'price_per_night', 'has_bed_breakfast', 'bed_breakfast_price',
             'skill_levels', 'rating', 'reviews_count',
-            'has_pool', 'has_yoga', 'is_featured', 'main_image'
+            'has_pool', 'has_yoga', 'is_featured', 'main_image',
+            'discount_percent', 'discount_ends_at', 'discount_description', 'discount_active'
         ]
 
+    def get_discount_active(self, obj):
+        """Check if discount is currently active"""
+        from django.utils import timezone
+        if obj.discount_percent and obj.discount_percent > 0:
+            if obj.discount_ends_at:
+                return obj.discount_ends_at > timezone.now()
+            return True  # No end date = always active
+        return False
+
     def get_main_image(self, obj):
+        """Return optimized thumb version for list cards"""
         main_img = obj.main_image
-        if main_img:
+        if main_img and main_img.image:
             request = self.context.get('request')
+            # Use optimized thumb for list view (faster loading)
+            optimized_path = get_optimized_image_url(main_img.image.name, 'thumb')
             if request:
-                return request.build_absolute_uri(main_img.image.url)
-            return main_img.image.url
+                return request.build_absolute_uri(f'/media/{optimized_path}')
+            return f'/media/{optimized_path}'
         return None
 
 
@@ -123,6 +181,7 @@ class SurfCampDetailSerializer(serializers.ModelSerializer):
             'amenities', 'has_pool', 'has_restaurant', 'has_yoga', 'has_parties',
             'website', 'email', 'phone', 'instagram', 'whatsapp',
             'rating', 'reviews_count', 'is_featured',
+            'discount_percent', 'discount_ends_at', 'discount_description',
             'images', 'instructors', 'activities', 'reviews', 'spots',
             'created_at', 'updated_at'
         ]
