@@ -25,9 +25,8 @@ function generateSrcSet(src: string): string {
 
   // For local/server images, check if we have optimized versions
   if (src.includes('/media/')) {
-    const basePath = src.replace('/media/', '/media/optimized/');
     const parts = src.split('.');
-    const ext = parts.pop();
+    parts.pop();
     const base = parts.join('.');
 
     // Try to use WebP optimized versions
