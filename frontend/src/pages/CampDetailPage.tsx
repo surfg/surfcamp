@@ -319,7 +319,7 @@ export function CampDetailPage() {
             </div>
 
             {/* Skill Levels */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
               {camp.skill_levels.map(level => (
                 <span
                   key={level}
@@ -336,6 +336,50 @@ export function CampDetailPage() {
                 </span>
               ))}
             </div>
+
+            {/* Teaching languages */}
+            {camp.teaching_languages && camp.teaching_languages.length > 0 && (
+              <div style={{ marginTop: '16px' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '8px'
+                }}>
+                  {language === 'ru' ? 'Языки обучения' : 'Teaching languages'}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {camp.teaching_languages.map(lang => {
+                    const labels: Record<string, { en: string; ru: string }> = {
+                      en: { en: 'English', ru: 'Английский' },
+                      ru: { en: 'Russian', ru: 'Русский' },
+                      es: { en: 'Spanish', ru: 'Испанский' },
+                      pt: { en: 'Portuguese', ru: 'Португальский' },
+                      fr: { en: 'French', ru: 'Французский' },
+                      de: { en: 'German', ru: 'Немецкий' },
+                    };
+                    return (
+                      <span
+                        key={lang}
+                        style={{
+                          padding: '6px 14px',
+                          backgroundColor: '#eff6ff',
+                          color: '#1e40af',
+                          borderRadius: '20px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          border: '1px solid #bfdbfe',
+                        }}
+                      >
+                        {language === 'ru' ? (labels[lang]?.ru || lang) : (labels[lang]?.en || lang)}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Features */}

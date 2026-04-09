@@ -356,6 +356,48 @@ export function CampsPage() {
                   </div>
                 </div>
 
+                {/* Teaching Language */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    marginBottom: '8px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}>
+                    {language === 'ru' ? 'Язык обучения' : 'Teaching language'}
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {(filterOptions?.languages || []).map(lang => {
+                      const active = filters.language === lang.value;
+                      const label = language === 'ru' ? lang.label_ru : lang.label;
+                      return (
+                        <button
+                          key={lang.value}
+                          onClick={() => setFilters(prev => ({
+                            ...prev,
+                            language: prev.language === lang.value ? undefined : lang.value
+                          }))}
+                          style={{
+                            padding: '10px 16px',
+                            borderRadius: '20px',
+                            border: active ? '2px solid #0ea5e9' : '1px solid #e2e8f0',
+                            backgroundColor: active ? '#f0f9ff' : 'white',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: active ? '#0284c7' : '#0f172a',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Board Types */}
                 <div>
                   <label style={{
