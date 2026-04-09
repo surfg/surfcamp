@@ -30,6 +30,12 @@ export function CampDetailPage() {
     }
   }, [slug]);
 
+  // Preload first 3 images (must run before early returns to satisfy hook rules)
+  const preloadImages = camp && camp.images.length > 0
+    ? camp.images.map(img => img.image)
+    : [];
+  useImagePreload(preloadImages, 3);
+
   if (loading) {
     return (
       <div style={{
@@ -76,9 +82,6 @@ export function CampDetailPage() {
   const images = camp.images.length > 0
     ? camp.images.map(img => img.image)
     : ['https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1200&h=800&fit=crop'];
-
-  // Preload first 3 images
-  useImagePreload(images, 3);
 
   // Discount calculations
   const hasDiscount = (camp as any).discount_percent && (camp as any).discount_percent > 0;
