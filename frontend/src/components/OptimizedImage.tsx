@@ -23,17 +23,28 @@ function generateSrcSet(src: string): string {
     ].join(', ');
   }
 
-  // For local/server images, check if we have optimized versions
+  // If the backend already gave us an optimized URL (e.g. .../optimized/.../foo_thumb.webp),
+  // build srcset by swapping the size suffix instead of re-optimizing.
+  const optimizedMatch = src.match(/^(.*)_(thumb|medium|large)\.webp$/);
+  if (optimizedMatch) {
+    const base = optimizedMatch[1];
+    return [
+      `${base}_thumb.webp 400w`,
+      `${base}_medium.webp 800w`,
+      `${base}_large.webp 1200w`,
+    ].join(', ');
+  }
+
+  // For raw local/server images, point at the optimized variants under /media/optimized/
   if (src.includes('/media/')) {
     const parts = src.split('.');
     parts.pop();
-    const base = parts.join('.');
+    const base = parts.join('.').replace('/media/', '/media/optimized/');
 
-    // Try to use WebP optimized versions
     return [
-      `${base.replace('/media/', '/media/optimized/')}_thumb.webp 400w`,
-      `${base.replace('/media/', '/media/optimized/')}_medium.webp 800w`,
-      `${base.replace('/media/', '/media/optimized/')}_large.webp 1200w`,
+      `${base}_thumb.webp 400w`,
+      `${base}_medium.webp 800w`,
+      `${base}_large.webp 1200w`,
     ].join(', ');
   }
 
