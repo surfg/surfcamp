@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
-  MapPin, Star, ArrowLeft, Globe, Mail, Phone, Camera,
+  MapPin, Star, ArrowLeft,
   ChevronLeft, ChevronRight, Check, Waves, Users,
   Map as MapIcon, MessageCircle, Clock, Percent
 } from 'lucide-react';
@@ -853,98 +853,33 @@ export function CampDetailPage() {
               {t('camp.noCharge')}
             </p>
 
-            {/* Contact */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-              <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a', marginBottom: '16px' }}>
-                {t('camp.contact')}
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {camp.website && (
-                  <a
-                    href={camp.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: '#64748b',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <Globe style={{ width: '18px', height: '18px' }} />
-                    {t('camp.website')}
-                  </a>
-                )}
-                {camp.email && (
-                  <a
-                    href={`mailto:${camp.email}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: '#64748b',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <Mail style={{ width: '18px', height: '18px' }} />
-                    {camp.email}
-                  </a>
-                )}
-                {camp.phone && (
-                  <a
-                    href={`tel:${camp.phone}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: '#64748b',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <Phone style={{ width: '18px', height: '18px' }} />
-                    {camp.phone}
-                  </a>
-                )}
-                {camp.instagram && (
-                  <a
-                    href={`https://instagram.com/${camp.instagram.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: '#64748b',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <Camera style={{ width: '18px', height: '18px' }} />
-                    {camp.instagram}
-                  </a>
-                )}
-                {camp.whatsapp && (
-                  <a
-                    href={`https://wa.me/${camp.whatsapp.replace(/\D/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: '#64748b',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <MessageCircle style={{ width: '18px', height: '18px' }} />
-                    WhatsApp
-                  </a>
-                )}
+            {/* Contacts hidden — sent after registration */}
+            <div style={{
+              borderTop: '1px solid #e2e8f0',
+              paddingTop: '24px',
+            }}>
+              <div style={{
+                padding: '16px',
+                background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+                borderRadius: '12px',
+                border: '1px solid #bae6fd',
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '6px',
+                }}>
+                  <MessageCircle style={{ width: '18px', height: '18px', color: '#0284c7' }} />
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#0c4a6e', margin: 0 }}>
+                    {language === 'ru' ? 'Контакты камп-школы' : 'Camp contacts'}
+                  </h4>
+                </div>
+                <p style={{ fontSize: '13px', color: '#0369a1', margin: 0, lineHeight: 1.5 }}>
+                  {language === 'ru'
+                    ? 'Контакты школы (телефон, email, WhatsApp, Instagram) отправим вам на почту после регистрации заявки.'
+                    : "We'll email you the camp's contact details (phone, email, WhatsApp, Instagram) after you submit a booking request."}
+                </p>
               </div>
             </div>
           </div>

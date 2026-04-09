@@ -107,6 +107,9 @@ class SurfCamp(models.Model):
     # Уровни серфинга
     skill_levels = models.JSONField(default=list, verbose_name="Уровни серфинга")  # ['beginner', 'intermediate', 'advanced']
 
+    # Языки обучения (ISO codes: 'en','ru','es','fr','pt','de','it')
+    teaching_languages = models.JSONField(default=list, blank=True, verbose_name="Языки обучения")
+
     # Доски
     board_types = models.ManyToManyField(BoardType, blank=True, related_name='camps', verbose_name="Типы досок")
     board_rental_available = models.BooleanField(default=True, verbose_name="Аренда досок")

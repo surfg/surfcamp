@@ -130,7 +130,8 @@ class SurfCampListSerializer(serializers.ModelSerializer):
             'region_name', 'country_name', 'country_code',
             'latitude', 'longitude',
             'price_per_night', 'has_bed_breakfast', 'bed_breakfast_price',
-            'skill_levels', 'rating', 'reviews_count',
+            'skill_levels', 'teaching_languages',
+            'rating', 'reviews_count',
             'has_pool', 'has_yoga', 'is_featured', 'main_image',
             'discount_percent', 'discount_ends_at', 'discount_description', 'discount_active'
         ]
@@ -177,7 +178,8 @@ class SurfCampDetailSerializer(serializers.ModelSerializer):
             'address', 'latitude', 'longitude',
             'price_per_night', 'price_per_lesson',
             'has_bed_breakfast', 'bed_breakfast_price',
-            'skill_levels', 'board_types', 'board_rental_available', 'board_rental_price',
+            'skill_levels', 'teaching_languages',
+            'board_types', 'board_rental_available', 'board_rental_price',
             'amenities', 'has_pool', 'has_restaurant', 'has_yoga', 'has_parties',
             'website', 'email', 'phone', 'instagram', 'whatsapp',
             'rating', 'reviews_count', 'is_featured',

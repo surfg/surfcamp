@@ -99,6 +99,17 @@ export function CampCard({ camp }: CampCardProps) {
                 <Clock style={{ width: '12px', height: '12px' }} />
                 {timeRemaining.hours}h {timeRemaining.minutes}m left
               </div>
+              <div style={{
+                padding: '3px 8px',
+                backgroundColor: 'white',
+                borderRadius: '10px',
+                fontSize: '10px',
+                fontWeight: 600,
+                color: '#dc2626',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}>
+                Register to claim
+              </div>
             </div>
           )}
 
@@ -216,15 +227,42 @@ export function CampCard({ camp }: CampCardProps) {
             {camp.name}
           </h3>
 
-          {/* Skill Levels */}
+          {/* Skill Levels + Languages */}
           <p style={{
             fontSize: '14px',
             color: '#64748b',
-            margin: '0 0 8px 0'
+            margin: '0 0 8px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
           }}>
-            {camp.skill_levels.map(level =>
-              level.charAt(0).toUpperCase() + level.slice(1)
-            ).join(' · ')} levels
+            <span>
+              {camp.skill_levels.map(level =>
+                level.charAt(0).toUpperCase() + level.slice(1)
+              ).join(' · ')} levels
+            </span>
+            {camp.teaching_languages && camp.teaching_languages.length > 0 && (
+              <span style={{ display: 'flex', gap: '4px' }}>
+                {camp.teaching_languages.slice(0, 3).map(lang => (
+                  <span
+                    key={lang}
+                    style={{
+                      padding: '2px 6px',
+                      backgroundColor: '#f1f5f9',
+                      color: '#475569',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </span>
+            )}
           </p>
 
           {/* Price */}

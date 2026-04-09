@@ -18,6 +18,7 @@ class SurfCampFilter(FilterSet):
     min_price = NumberFilter(field_name='price_per_night', lookup_expr='gte')
     max_price = NumberFilter(field_name='price_per_night', lookup_expr='lte')
     skill_level = CharFilter(method='filter_skill_level')
+    language = CharFilter(method='filter_language')
     has_pool = BooleanFilter(field_name='has_pool')
     has_yoga = BooleanFilter(field_name='has_yoga')
     has_parties = BooleanFilter(field_name='has_parties')
@@ -31,7 +32,7 @@ class SurfCampFilter(FilterSet):
         model = SurfCamp
         fields = [
             'country', 'region', 'min_price', 'max_price',
-            'skill_level', 'has_pool', 'has_yoga', 'has_parties',
+            'skill_level', 'language', 'has_pool', 'has_yoga', 'has_parties',
             'has_bed_breakfast', 'board_rental', 'min_rating', 'is_featured',
             'board_types'
         ]
@@ -39,6 +40,10 @@ class SurfCampFilter(FilterSet):
     def filter_skill_level(self, queryset, name, value):
         # Filter JSONField array for containing the value
         return queryset.filter(skill_levels__icontains=value)
+
+    def filter_language(self, queryset, name, value):
+        # Filter JSONField array for containing the language code
+        return queryset.filter(teaching_languages__icontains=value)
 
     def filter_board_types(self, queryset, name, value):
         # Filter by board types (comma-separated IDs)
@@ -281,6 +286,14 @@ def filter_options(request):
             {'value': 'beginner', 'label': 'Beginner'},
             {'value': 'intermediate', 'label': 'Intermediate'},
             {'value': 'advanced', 'label': 'Advanced'}
+        ],
+        'languages': [
+            {'value': 'en', 'label': 'English', 'label_ru': 'Английский'},
+            {'value': 'ru', 'label': 'Russian', 'label_ru': 'Русский'},
+            {'value': 'es', 'label': 'Spanish', 'label_ru': 'Испанский'},
+            {'value': 'pt', 'label': 'Portuguese', 'label_ru': 'Португальский'},
+            {'value': 'fr', 'label': 'French', 'label_ru': 'Французский'},
+            {'value': 'de', 'label': 'German', 'label_ru': 'Немецкий'},
         ],
         'amenities': list(amenities),
         'board_types': list(board_types),

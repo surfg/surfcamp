@@ -92,6 +92,7 @@ export interface SurfCamp {
   has_bed_breakfast: boolean;
   bed_breakfast_price: number | null;
   skill_levels: string[];
+  teaching_languages: string[];
   rating: number;
   reviews_count: number;
   has_pool: boolean;
@@ -182,6 +183,7 @@ export interface FilterParams {
   min_price?: number;
   max_price?: number;
   skill_level?: string;
+  language?: string;
   has_pool?: boolean;
   has_yoga?: boolean;
   has_parties?: boolean;
@@ -253,6 +255,11 @@ export interface FilterOptions {
   skill_levels: Array<{
     value: string;
     label: string;
+  }>;
+  languages: Array<{
+    value: string;
+    label: string;
+    label_ru: string;
   }>;
   amenities: Array<{
     id: number;

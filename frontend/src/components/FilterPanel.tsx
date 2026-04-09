@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { getFilterOptions } from '../lib/api';
+import { useLanguage } from '../contexts/LanguageContext';
 import type { FilterParams, FilterOptions } from '../types';
 
 interface FilterPanelProps {
@@ -11,11 +12,13 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ filters, onFilterChange, onClose, isModal = false }: FilterPanelProps) {
+  const { language } = useLanguage();
   const [options, setOptions] = useState<FilterOptions | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     price: true,
     skill: true,
+    teachLang: true,
     amenities: true,
     rating: false,
   });
@@ -281,6 +284,56 @@ export function FilterPanel({ filters, onFilterChange, onClose, isModal = false 
                       {level.label}
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Teaching Language */}
+          <div style={{ borderBottom: '1px solid #f1f5f9' }}>
+            <button
+              onClick={() => toggleSection('teachLang')}
+              style={{
+                width: '100%',
+                padding: '16px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>
+                {language === 'ru' ? 'Язык обучения' : 'Teaching language'}
+              </span>
+              {expandedSections.teachLang ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+            {expandedSections.teachLang && (
+              <div style={{ padding: '0 24px 20px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {(options?.languages || []).map(lang => {
+                    const active = filters.language === lang.value;
+                    const label = language === 'ru' ? lang.label_ru : lang.label;
+                    return (
+                      <button
+                        key={lang.value}
+                        onClick={() => updateFilter('language', active ? undefined : lang.value)}
+                        style={{
+                          padding: '10px 18px',
+                          borderRadius: '20px',
+                          border: active ? '2px solid #0ea5e9' : '1px solid #e2e8f0',
+                          backgroundColor: active ? '#f0f9ff' : 'white',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: active ? '#0ea5e9' : '#0f172a',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
