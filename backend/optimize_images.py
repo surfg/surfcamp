@@ -235,7 +235,7 @@ def main():
     # Determine paths
     script_dir = Path(__file__).resolve().parent
     media_dir = Path(args.input) if args.input else script_dir / 'media' / 'camps'
-    output_dir = Path(args.output) if args.output else script_dir / 'media_optimized' / 'camps'
+    output_dir = Path(args.output) if args.output else script_dir / 'media' / 'optimized' / 'camps'
 
     if not media_dir.exists():
         print(f"ERROR: Media directory not found: {media_dir}")

@@ -1,4 +1,5 @@
 import os
+from django.conf import settings
 from rest_framework import serializers
 from .models import (
     Country, Region, BoardType, Amenity, SurfCamp,
@@ -23,6 +24,25 @@ def get_optimized_image_url(original_path, size='thumb'):
     # Build optimized path
     optimized_path = f"optimized/{dir_name}/{name_without_ext}_{size}.webp"
     return optimized_path
+
+
+def _optimized_exists(optimized_path):
+    full = os.path.join(settings.MEDIA_ROOT, optimized_path)
+    return os.path.exists(full)
+
+
+def _resolve_image_url(obj_image, size, request):
+    """Return optimized URL if file exists on disk, else fall back to original."""
+    if not obj_image:
+        return None
+    optimized_path = get_optimized_image_url(obj_image.name, size)
+    if optimized_path and _optimized_exists(optimized_path):
+        url = f'/media/{optimized_path}'
+    else:
+        url = obj_image.url
+    if request:
+        return request.build_absolute_uri(url)
+    return url
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -71,14 +91,8 @@ class CampImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'image', 'thumb', 'medium', 'large', 'alt_text', 'is_main', 'order']
 
     def _get_optimized_url(self, obj, size):
-        """Get optimized image URL for given size"""
-        if not obj.image:
-            return None
-        request = self.context.get('request')
-        optimized_path = get_optimized_image_url(obj.image.name, size)
-        if request:
-            return request.build_absolute_uri(f'/media/{optimized_path}')
-        return f'/media/{optimized_path}'
+        """Get optimized image URL; fall back to original if WebP copy missing."""
+        return _resolve_image_url(obj.image, size, self.context.get('request'))
 
     def get_thumb(self, obj):
         return self._get_optimized_url(obj, 'thumb')
@@ -146,15 +160,10 @@ class SurfCampListSerializer(serializers.ModelSerializer):
         return False
 
     def get_main_image(self, obj):
-        """Return optimized thumb version for list cards"""
+        """Return optimized thumb for list cards; fall back to original if missing."""
         main_img = obj.main_image
         if main_img and main_img.image:
-            request = self.context.get('request')
-            # Use optimized thumb for list view (faster loading)
-            optimized_path = get_optimized_image_url(main_img.image.name, 'thumb')
-            if request:
-                return request.build_absolute_uri(f'/media/{optimized_path}')
-            return f'/media/{optimized_path}'
+            return _resolve_image_url(main_img.image, 'thumb', self.context.get('request'))
         return None
 
 
