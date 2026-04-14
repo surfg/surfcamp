@@ -8,7 +8,7 @@ from django.db.models import Q, Value, CharField, Min, Max, Avg
 from django.db.models.functions import Concat
 from .models import Country, Region, BoardType, Amenity, SurfCamp, Review
 from .serializers import (
-    CountrySerializer, RegionSerializer, BoardTypeSerializer,
+    CountrySerializer, CountryLandingSerializer, RegionSerializer, BoardTypeSerializer,
     AmenitySerializer, SurfCampListSerializer, SurfCampDetailSerializer,
     ReviewSerializer
 )
@@ -60,6 +60,13 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_active=True)
     serializer_class = CountrySerializer
     pagination_class = None
+    lookup_field = 'slug'
+
+    @action(detail=True, methods=['get'])
+    def landing(self, request, slug=None):
+        country = self.get_object()
+        serializer = CountryLandingSerializer(country, context={'request': request})
+        return Response(serializer.data)
 
 
 class RegionViewSet(viewsets.ReadOnlyModelViewSet):

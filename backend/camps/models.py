@@ -7,9 +7,17 @@ class Country(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название")
     name_en = models.CharField(max_length=100, verbose_name="Название (EN)")
     code = models.CharField(max_length=3, unique=True, verbose_name="Код страны")
+    slug = models.SlugField(max_length=100, unique=True, blank=True, verbose_name="URL slug")
     image = models.ImageField(upload_to='countries/', blank=True, null=True, verbose_name="Изображение")
     description = models.TextField(blank=True, verbose_name="Описание")
     is_active = models.BooleanField(default=True, verbose_name="Активна")
+
+    # SEO-лендинг
+    landing_h1 = models.CharField(max_length=200, blank=True, verbose_name="H1 для лендинга")
+    landing_intro = models.TextField(blank=True, verbose_name="Intro-текст лендинга")
+    landing_faq = models.JSONField(default=list, blank=True, verbose_name="FAQ [{q, a}]")
+    seo_title = models.CharField(max_length=200, blank=True, verbose_name="SEO title")
+    seo_description = models.CharField(max_length=300, blank=True, verbose_name="SEO description")
 
     class Meta:
         verbose_name = "Страна"

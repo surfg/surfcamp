@@ -50,10 +50,30 @@ class CountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ['id', 'name', 'name_en', 'code', 'image', 'description', 'camps_count']
+        fields = ['id', 'name', 'name_en', 'code', 'slug', 'image', 'description', 'camps_count']
 
     def get_camps_count(self, obj):
         return SurfCamp.objects.filter(region__country=obj, is_active=True).count()
+
+
+class CountryLandingSerializer(serializers.ModelSerializer):
+    """Full landing payload incl. SEO + top camps."""
+    top_camps = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Country
+        fields = [
+            'id', 'name', 'name_en', 'code', 'slug', 'image', 'description',
+            'landing_h1', 'landing_intro', 'landing_faq',
+            'seo_title', 'seo_description',
+            'top_camps',
+        ]
+
+    def get_top_camps(self, obj):
+        camps = SurfCamp.objects.filter(
+            region__country=obj, is_active=True
+        ).select_related('region', 'region__country').prefetch_related('images').order_by('-rating')[:12]
+        return SurfCampListSerializer(camps, many=True, context=self.context).data
 
 
 class RegionSerializer(serializers.ModelSerializer):

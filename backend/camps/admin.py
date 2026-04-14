@@ -8,10 +8,22 @@ from .models import (
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'name_en', 'code', 'is_active', 'camps_count']
+    list_display = ['name', 'name_en', 'code', 'slug', 'is_active', 'camps_count']
     list_filter = ['is_active']
-    search_fields = ['name', 'name_en', 'code']
+    search_fields = ['name', 'name_en', 'code', 'slug']
     list_editable = ['is_active']
+    prepopulated_fields = {'slug': ('name_en',)}
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('name', 'name_en', 'code', 'slug', 'image', 'description', 'is_active')
+        }),
+        ('SEO / Лендинг', {
+            'fields': ('landing_h1', 'landing_intro', 'landing_faq', 'seo_title', 'seo_description'),
+            'classes': ('collapse',),
+            'description': 'Заполните для гео-лендинга по /<slug>. landing_faq — JSON вида [{"q":"...","a":"..."}].'
+        }),
+    )
 
     def camps_count(self, obj):
         return SurfCamp.objects.filter(region__country=obj).count()

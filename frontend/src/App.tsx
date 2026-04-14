@@ -12,6 +12,7 @@ import { BookingPage } from './pages/BookingPage';
 import { GuestInfoPage } from './pages/GuestInfoPage';
 import { PaymentPage } from './pages/PaymentPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
+import { CountryLandingPage } from './pages/CountryLandingPage';
 import { LanguageProvider } from './contexts/LanguageContext';
 import './index.css';
 
@@ -35,6 +36,8 @@ function App() {
               <Route path="/booking/:bookingNumber/guests" element={<GuestInfoPage />} />
               <Route path="/booking/:bookingNumber/payment" element={<PaymentPage />} />
               <Route path="/booking/:bookingNumber/confirmation" element={<ConfirmationPage />} />
+              {/* Country landing (catch-all, must stay last) */}
+              <Route path="/:countrySlug" element={<CountryLandingPage />} />
             </Routes>
           </main>
         </div>
