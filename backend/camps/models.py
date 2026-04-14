@@ -170,6 +170,9 @@ class SurfCamp(models.Model):
         verbose_name = "Серф-кемп"
         verbose_name_plural = "Серф-кемпы"
         ordering = ['-is_featured', '-rating']
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'region'], name='unique_camp_name_per_region'),
+        ]
 
     def __str__(self):
         return self.name
