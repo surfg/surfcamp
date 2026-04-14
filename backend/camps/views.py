@@ -1,3 +1,5 @@
+from django.http import HttpResponsePermanentRedirect, Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -136,6 +138,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if camp_slug:
             queryset = queryset.filter(camp__slug=camp_slug)
         return queryset
+
+
+def camp_redirect_by_id(request, pk):
+    """301 from /camps/<id>/ to /camps/<slug>/ for legacy/indexed URLs."""
+    camp = get_object_or_404(SurfCamp, pk=pk)
+    return HttpResponsePermanentRedirect(f'/camps/{camp.slug}/')
 
 
 @api_view(['GET'])
