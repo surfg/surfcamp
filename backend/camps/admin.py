@@ -81,7 +81,7 @@ class SurfCampAdmin(admin.ModelAdmin):
         'rating', 'reviews_count', 'is_featured', 'is_active', 'image_preview'
     ]
     list_filter = ['is_active', 'is_featured', 'region__country', 'has_pool', 'has_yoga', 'has_parties', 'discount_percent']
-    search_fields = ['name', 'short_description', 'address']
+    search_fields = ['name', 'slug', 'short_description', 'address', 'region__name', 'region__country__name']
     list_editable = ['is_featured', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
     filter_horizontal = ['board_types', 'amenities']
