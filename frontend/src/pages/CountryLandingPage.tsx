@@ -45,8 +45,8 @@ export function CountryLandingPage() {
     if (!countrySlug) return;
     setLoading(true);
     setNotFound(false);
-    fetchAPI(`/countries/${countrySlug}/landing/`)
-      .then((d: LandingData) => setData(d))
+    fetchAPI<LandingData>(`/countries/${countrySlug}/landing/`)
+      .then((d) => setData(d))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [countrySlug]);
