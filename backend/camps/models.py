@@ -95,8 +95,8 @@ class SurfCamp(models.Model):
 
     # Геолокация
     address = models.CharField(max_length=300, verbose_name="Адрес")
-    latitude = models.DecimalField(max_digits=10, decimal_places=7, verbose_name="Широта")
-    longitude = models.DecimalField(max_digits=10, decimal_places=7, verbose_name="Долгота")
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True, verbose_name="Широта")
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True, verbose_name="Долгота")
 
     # Цены
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена за ночь (USD)")

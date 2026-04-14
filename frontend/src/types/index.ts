@@ -86,8 +86,8 @@ export interface SurfCamp {
   region_name: string;
   country_name: string;
   country_code: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   price_per_night: number;
   has_bed_breakfast: boolean;
   bed_breakfast_price: number | null;

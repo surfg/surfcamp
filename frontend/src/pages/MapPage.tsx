@@ -94,9 +94,10 @@ export function MapPage() {
     if (countryCode && countryCenters[countryCode]) {
       return countryCenters[countryCode];
     }
-    if (camps.length > 0) {
-      const avgLat = camps.reduce((sum, c) => sum + c.latitude, 0) / camps.length;
-      const avgLng = camps.reduce((sum, c) => sum + c.longitude, 0) / camps.length;
+    const campsWithCoords = camps.filter(c => c.latitude != null && c.longitude != null);
+    if (campsWithCoords.length > 0) {
+      const avgLat = campsWithCoords.reduce((sum, c) => sum + (c.latitude as number), 0) / campsWithCoords.length;
+      const avgLng = campsWithCoords.reduce((sum, c) => sum + (c.longitude as number), 0) / campsWithCoords.length;
       return { center: [avgLat, avgLng] as [number, number], zoom: 6 };
     }
     return { center: [-8.65, 115.1] as [number, number], zoom: 3 };
@@ -231,10 +232,10 @@ export function MapPage() {
           />
           <MapController center={center} zoom={zoom} />
 
-          {showCamps && camps.map((camp) => (
+          {showCamps && camps.filter(c => c.latitude != null && c.longitude != null).map((camp) => (
             <Marker
               key={`camp-${camp.id}`}
-              position={[camp.latitude, camp.longitude]}
+              position={[camp.latitude as number, camp.longitude as number]}
               icon={campIcon}
             >
               <Popup>
