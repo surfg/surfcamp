@@ -19,6 +19,7 @@ export function CampDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'instructors' | 'spots' | 'reviews'>('overview');
+  const [packageType, setPackageType] = useState<'full' | 'bnb'>('full');
 
   useEffect(() => {
     if (slug) {
@@ -864,19 +865,42 @@ export function CampDetailPage() {
 
             {camp.has_bed_breakfast && camp.bed_breakfast_price && (
               <div style={{
-                padding: '14px',
-                backgroundColor: '#fef3c7',
+                display: 'flex',
+                gap: '8px',
+                marginBottom: '16px',
+                padding: '4px',
+                backgroundColor: '#f1f5f9',
                 borderRadius: '12px',
-                marginBottom: '16px'
               }}>
-                <p style={{ fontSize: '14px', color: '#92400e', margin: 0 }}>
-                  <strong>{t('camp.bbOnly')}:</strong> ${Number(camp.bed_breakfast_price).toFixed(0)} / {t('camp.perNight')}
-                </p>
+                {[
+                  { value: 'full' as const, label: language === 'ru' ? 'С уроками' : 'With lessons', price: originalPrice },
+                  { value: 'bnb' as const, label: language === 'ru' ? 'Только проживание' : 'B&B only', price: Number(camp.bed_breakfast_price) },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setPackageType(opt.value)}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      background: packageType === opt.value ? 'white' : 'transparent',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: packageType === opt.value ? '#0f172a' : '#64748b',
+                      cursor: 'pointer',
+                      boxShadow: packageType === opt.value ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                    }}
+                  >
+                    <div>{opt.label}</div>
+                    <div style={{ fontSize: '12px', fontWeight: 500, color: '#0ea5e9' }}>${opt.price.toFixed(0)} / {t('camp.perNight')}</div>
+                  </button>
+                ))}
               </div>
             )}
 
             <button
-              onClick={() => navigate(`/camps/${slug}/book`)}
+              onClick={() => navigate(`/camps/${slug}/book${packageType === 'bnb' ? '?package=bnb' : ''}`)}
               style={{
                 width: '100%',
                 padding: '16px',

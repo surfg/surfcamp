@@ -21,6 +21,7 @@ export function BookingPage() {
   const [checkOut, setCheckOut] = useState(searchParams.get('check_out') || '');
   const [adults, setAdults] = useState(Number(searchParams.get('guests')) || 2);
   const [children, setChildren] = useState(0);
+  const packageType: 'full' | 'bnb' = searchParams.get('package') === 'bnb' ? 'bnb' : 'full';
   const [includeBreakfast, setIncludeBreakfast] = useState(false);
   const [includeLessons, setIncludeLessons] = useState(false);
   const [lessonsCount, setLessonsCount] = useState(0);
@@ -78,9 +79,10 @@ export function BookingPage() {
         check_out: checkOut,
         adults,
         children,
-        include_breakfast: includeBreakfast,
-        include_lessons: includeLessons,
-        lessons_count: lessonsCount,
+        package_type: packageType,
+        include_breakfast: packageType === 'bnb' ? false : includeBreakfast,
+        include_lessons: packageType === 'bnb' ? false : includeLessons,
+        lessons_count: packageType === 'bnb' ? 0 : lessonsCount,
         include_board_rental: includeBoardRental,
         special_requests: specialRequests,
         arrival_time: arrivalTime,

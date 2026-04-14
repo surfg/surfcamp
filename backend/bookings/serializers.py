@@ -29,6 +29,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'camp', 'check_in', 'check_out', 'adults', 'children',
+            'package_type',
             'include_breakfast', 'include_lessons', 'lessons_count',
             'include_board_rental', 'special_requests', 'arrival_time', 'guests'
         ]
@@ -38,25 +39,34 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'check_out': 'Check-out date must be after check-in date'}
             )
+        if data.get('package_type') == 'bnb':
+            camp = data['camp']
+            if not camp.has_bed_breakfast or not camp.bed_breakfast_price:
+                raise serializers.ValidationError(
+                    {'package_type': 'This camp does not offer a B&B-only package'}
+                )
         return data
 
     def create(self, validated_data):
         guests_data = validated_data.pop('guests', [])
         camp = validated_data['camp']
+        package_type = validated_data.get('package_type', 'full')
 
-        # Calculate prices
         nights = (validated_data['check_out'] - validated_data['check_in']).days
-        price_per_night = camp.price_per_night
+        if package_type == 'bnb':
+            price_per_night = camp.bed_breakfast_price or camp.price_per_night
+        else:
+            price_per_night = camp.price_per_night
         subtotal = price_per_night * nights
 
         breakfast_total = 0
-        if validated_data.get('include_breakfast') and camp.has_bed_breakfast:
+        if package_type != 'bnb' and validated_data.get('include_breakfast') and camp.has_bed_breakfast:
             breakfast_total = (camp.bed_breakfast_price or 0) * nights * (
                 validated_data['adults'] + validated_data.get('children', 0)
             )
 
         lessons_total = 0
-        if validated_data.get('include_lessons') and camp.price_per_lesson:
+        if package_type != 'bnb' and validated_data.get('include_lessons') and camp.price_per_lesson:
             lessons_total = camp.price_per_lesson * validated_data.get('lessons_count', 0)
 
         board_rental_total = 0
@@ -99,6 +109,7 @@ class BookingDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'booking_number', 'camp', 'camp_name', 'camp_slug', 'camp_image',
             'camp_address', 'check_in', 'check_out', 'nights', 'adults', 'children',
+            'package_type',
             'include_breakfast', 'include_lessons', 'lessons_count', 'include_board_rental',
             'price_per_night', 'breakfast_total', 'lessons_total', 'board_rental_total',
             'subtotal', 'service_fee', 'total_price', 'currency',

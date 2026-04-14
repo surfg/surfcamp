@@ -347,6 +347,7 @@ export interface BookingCreateData {
   check_out: string;
   adults: number;
   children: number;
+  package_type?: 'full' | 'bnb';
   include_breakfast?: boolean;
   include_lessons?: boolean;
   lessons_count?: number;

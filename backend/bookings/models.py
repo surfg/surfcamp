@@ -23,6 +23,11 @@ class Booking(models.Model):
         ('refunded', 'Возвращено'),
     ]
 
+    PACKAGE_CHOICES = [
+        ('full', 'С уроками'),
+        ('bnb', 'Только проживание (B&B)'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     booking_number = models.CharField(max_length=20, unique=True, editable=False)
 
@@ -41,6 +46,9 @@ class Booking(models.Model):
     # Гости
     adults = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     children = models.PositiveIntegerField(default=0)
+
+    # Тип пакета
+    package_type = models.CharField(max_length=10, choices=PACKAGE_CHOICES, default='full')
 
     # Опции
     include_breakfast = models.BooleanField(default=False)

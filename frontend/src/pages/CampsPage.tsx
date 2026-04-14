@@ -467,6 +467,7 @@ export function CampsPage() {
                       { key: 'has_pool', label: t('filters.pool') },
                       { key: 'has_yoga', label: t('filters.yoga') },
                       { key: 'has_parties', label: t('filters.parties') },
+                      { key: 'has_bed_breakfast', label: t('filters.bedBreakfast') || 'Только проживание' },
                     ].map(amenity => (
                       <button
                         key={amenity.key}

@@ -116,15 +116,14 @@ def download_image(url, camp_slug, idx):
 
 
 def ensure_amenity(name):
-    """Get-or-create an Amenity row."""
+    """Get-or-create an Amenity row (handles existing duplicates)."""
     name_clean = (name or '').strip().title()
     if not name_clean or len(name_clean) > 100:
         return None
-    amenity, _ = Amenity.objects.get_or_create(
-        name_en__iexact=name_clean,
-        defaults={'name': name_clean, 'name_en': name_clean, 'category': 'services'},
-    )
-    return amenity
+    qs = Amenity.objects.filter(name_en__iexact=name_clean).order_by('id')
+    if qs.exists():
+        return qs.first()
+    return Amenity.objects.create(name=name_clean, name_en=name_clean, category='services')
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -344,21 +343,24 @@ def step_lessons():
         if not camp.price_per_lesson:
             continue
 
+        # Build a slug that fits in 50 chars (LessonProvider.slug max_length)
+        base_slug = camp.slug[:40]
+        provider_slug = f'{base_slug}-l'[:50]
         provider, created = LessonProvider.objects.get_or_create(
-            slug=f'{camp.slug}-lessons',
+            slug=provider_slug,
             defaults={
-                'name': f'{camp.name} School',
-                'description': camp.description[:1000] if camp.description else '',
+                'name': (f'{camp.name} School')[:200],
+                'description': (camp.description or '')[:1000],
                 'description_ru': '',
                 'region': camp.region,
-                'address': camp.address,
+                'address': (camp.address or '')[:500],
                 'latitude': camp.latitude,
                 'longitude': camp.longitude,
-                'phone': camp.phone,
-                'email': camp.email,
-                'website': camp.website,
-                'instagram': camp.instagram,
-                'whatsapp': camp.whatsapp,
+                'phone': (camp.phone or '')[:50],
+                'email': (camp.email or '')[:254],
+                'website': (camp.website or '')[:200],
+                'instagram': (camp.instagram or '')[:100],
+                'whatsapp': (camp.whatsapp or '')[:50],
                 'rating': camp.rating,
                 'reviews_count': camp.reviews_count,
                 'is_active': True,
@@ -379,7 +381,7 @@ def step_lessons():
             if tpl['skill_level'] == 'intermediate' and 'intermediate' not in camp_levels:
                 continue
 
-            slug = f'{camp.slug}-{slugify(tpl["name"])}'
+            slug = f'{camp.slug[:90]}-{slugify(tpl["name"])}'[:150]
             if SurfLesson.objects.filter(slug=slug).exists():
                 continue
 
