@@ -160,7 +160,7 @@ class SurfCampAdmin(admin.ModelAdmin):
         return '-'
     discount_badge.short_description = 'Скидка'
 
-    @admin.action(description='Установить скидку 15% на 24 часа')
+    @admin.action(description='Установить скидку 15%% на 24 часа')
     def set_24h_discount(self, request, queryset):
         from django.utils import timezone
         from datetime import timedelta
