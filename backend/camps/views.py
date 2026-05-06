@@ -7,6 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend, FilterSet, CharFi
 from django.db.models import Q, Value, CharField, Min, Max, Avg
 from django.db.models.functions import Concat
 from .models import Country, Region, BoardType, Amenity, SurfCamp, Review
+from .search_translit import expand_query
 from .serializers import (
     CountrySerializer, CountryLandingSerializer, RegionSerializer, BoardTypeSerializer,
     AmenitySerializer, SurfCampListSerializer, SurfCampDetailSerializer,
@@ -93,7 +94,7 @@ class SurfCampViewSet(viewsets.ReadOnlyModelViewSet):
         'region', 'region__country'
     ).prefetch_related('images', 'board_types', 'amenities')
     filterset_class = SurfCampFilter
-    search_fields = ['name', 'short_description', 'address', 'region__name']
+    search_fields = ['name', 'short_description', 'address', 'region__name', 'region__name_en', 'region__country__name', 'region__country__name_en']
     ordering_fields = ['price_per_night', 'rating', 'reviews_count', 'created_at']
     ordering = ['-is_featured', '-rating']
     lookup_field = 'slug'
@@ -102,6 +103,23 @@ class SurfCampViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'retrieve':
             return SurfCampDetailSerializer
         return SurfCampListSerializer
+
+    def filter_queryset(self, queryset):
+        """Apply RU→EN translation to ?search= before DRF SearchFilter runs."""
+        search = self.request.query_params.get('search', '').strip()
+        extras = [t for t in expand_query(search) if t and t != search]
+        if extras:
+            qs = super().filter_queryset(queryset)
+            extra_q = Q()
+            for t in extras:
+                for f in self.search_fields:
+                    extra_q |= Q(**{f'{f}__icontains': t})
+            extra_qs = queryset.filter(extra_q)
+            try:
+                return (qs | extra_qs).distinct()
+            except Exception:
+                return extra_qs.distinct()
+        return super().filter_queryset(queryset)
 
     @action(detail=False, methods=['get'])
     def featured(self, request):
@@ -172,6 +190,21 @@ def search_autocomplete(request):
     query_title = query.title()
     query_upper = query.upper()
 
+    # RU → EN expansion: "Бали" → also search "Bali"
+    extra_terms = [t for t in expand_query(query) if t != query]
+
+    def or_q(field):
+        """Build Q OR over original query (case variants) + EN synonyms for `field`."""
+        q = (
+            Q(**{f'{field}__icontains': query})
+            | Q(**{f'{field}__icontains': query_lower})
+            | Q(**{f'{field}__icontains': query_title})
+            | Q(**{f'{field}__icontains': query_upper})
+        )
+        for t in extra_terms:
+            q |= Q(**{f'{field}__icontains': t})
+        return q
+
     results = []
 
     def get_localized(name_ru, name_en):
@@ -182,9 +215,7 @@ def search_autocomplete(request):
 
     # Поиск по странам (ищем и в русских и в английских названиях)
     countries = Country.objects.filter(
-        Q(name__icontains=query) | Q(name_en__icontains=query) |
-        Q(name__icontains=query_lower) | Q(name__icontains=query_title) |
-        Q(name__icontains=query_upper),
+        (or_q('name') | or_q('name_en')),
         is_active=True
     ).annotate(
         camps_count=Count('regions__camps', filter=Q(regions__camps__is_active=True))
@@ -203,9 +234,7 @@ def search_autocomplete(request):
 
     # Поиск по регионам
     regions = Region.objects.filter(
-        Q(name__icontains=query) | Q(name_en__icontains=query) |
-        Q(name__icontains=query_lower) | Q(name__icontains=query_title) |
-        Q(name__icontains=query_upper)
+        or_q('name') | or_q('name_en')
     ).select_related('country').annotate(
         camps_count=Count('camps', filter=Q(camps__is_active=True))
     ).distinct()[:3]
@@ -221,18 +250,16 @@ def search_autocomplete(request):
             'camps_count': region.camps_count
         })
 
-    # Поиск по кемпам (также ищем по русскому названию региона)
+    # Поиск по кемпам (также ищем по русскому названию региона/страны и EN-синониму)
     camps = SurfCamp.objects.filter(
-        Q(name__icontains=query) |
-        Q(short_description__icontains=query) |
-        Q(region__name__icontains=query) |
-        Q(region__name_en__icontains=query) |
-        Q(region__country__name__icontains=query) |
-        Q(region__country__name_en__icontains=query) |
-        Q(region__name__icontains=query_lower) |
-        Q(region__name__icontains=query_title) |
-        Q(region__country__name__icontains=query_lower) |
-        Q(region__country__name__icontains=query_title),
+        (
+            or_q('name')
+            | or_q('short_description')
+            | or_q('region__name')
+            | or_q('region__name_en')
+            | or_q('region__country__name')
+            | or_q('region__country__name_en')
+        ),
         is_active=True
     ).select_related('region', 'region__country').distinct()[:5]
     for camp in camps:
@@ -245,7 +272,7 @@ def search_autocomplete(request):
             'country_name': get_localized(camp.region.country.name, camp.region.country.name_en),
             'price_per_night': float(camp.price_per_night),
             'rating': float(camp.rating),
-            'image': camp.main_image.url if camp.main_image else None
+            'image': camp.main_image.image.url if camp.main_image and camp.main_image.image else None
         })
 
     return Response({'results': results})

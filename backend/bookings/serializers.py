@@ -118,7 +118,8 @@ class BookingDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_camp_image(self, obj):
-        return obj.camp.main_image.url if obj.camp.main_image else None
+        main = obj.camp.main_image
+        return main.image.url if main and main.image else None
 
 
 class BookingListSerializer(serializers.ModelSerializer):
