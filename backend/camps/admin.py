@@ -1,9 +1,53 @@
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     Country, Region, BoardType, Amenity, SurfCamp,
     CampImage, Instructor, Activity, Review
 )
+
+
+TEACHING_LANGUAGE_CHOICES = [
+    ('en', 'English / Английский'),
+    ('ru', 'Russian / Русский'),
+    ('es', 'Spanish / Испанский'),
+    ('pt', 'Portuguese / Португальский'),
+    ('fr', 'French / Французский'),
+    ('de', 'German / Немецкий'),
+    ('it', 'Italian / Итальянский'),
+]
+
+SKILL_LEVEL_CHOICES = [
+    ('beginner', 'Beginner / Начинающий'),
+    ('intermediate', 'Intermediate / Средний'),
+    ('advanced', 'Advanced / Продвинутый'),
+]
+
+
+class SurfCampAdminForm(forms.ModelForm):
+    teaching_languages = forms.MultipleChoiceField(
+        choices=TEACHING_LANGUAGE_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Языки обучения',
+        help_text='Языки, на которых проводятся занятия в кемпе'
+    )
+    skill_levels = forms.MultipleChoiceField(
+        choices=SKILL_LEVEL_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Уровни серфинга',
+    )
+
+    class Meta:
+        model = SurfCamp
+        fields = '__all__'
+
+    def clean_teaching_languages(self):
+        return list(self.cleaned_data.get('teaching_languages') or [])
+
+    def clean_skill_levels(self):
+        return list(self.cleaned_data.get('skill_levels') or [])
 
 
 @admin.register(Country)
@@ -88,8 +132,9 @@ class ReviewInline(admin.TabularInline):
 
 @admin.register(SurfCamp)
 class SurfCampAdmin(admin.ModelAdmin):
+    form = SurfCampAdminForm
     list_display = [
-        'name', 'region', 'price_per_night', 'discount_badge',
+        'name', 'region', 'price_per_night', 'teaching_languages_badge', 'discount_badge',
         'rating', 'reviews_count', 'is_featured', 'is_active', 'image_preview'
     ]
     list_filter = ['is_active', 'is_featured', 'region__country', 'has_pool', 'has_yoga', 'has_parties', 'discount_percent']
@@ -122,9 +167,10 @@ class SurfCampAdmin(admin.ModelAdmin):
         }),
         ('Серфинг', {
             'fields': (
-                'skill_levels', 'board_types',
+                'skill_levels', 'teaching_languages', 'board_types',
                 ('board_rental_available', 'board_rental_price')
-            )
+            ),
+            'description': 'Уровни серфинга и языки преподавания используются в фильтрах на сайте.'
         }),
         ('Удобства', {
             'fields': (
@@ -139,6 +185,13 @@ class SurfCampAdmin(admin.ModelAdmin):
             'fields': (('rating', 'reviews_count'), ('is_featured', 'is_active'))
         }),
     )
+
+    def teaching_languages_badge(self, obj):
+        langs = obj.teaching_languages or []
+        if not langs:
+            return format_html('<span style="color: #dc2626; font-weight: 600;">— не задано</span>')
+        return ', '.join(str(l).upper() for l in langs)
+    teaching_languages_badge.short_description = 'Языки'
 
     def discount_badge(self, obj):
         if obj.discount_percent and obj.discount_percent > 0:
